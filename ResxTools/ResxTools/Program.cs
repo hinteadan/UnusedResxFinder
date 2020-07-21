@@ -135,7 +135,7 @@ namespace ResxTools
                     if (key.Contains("_Enums_"))
                         key = key.Substring(key.IndexOf("_Enums_") + "_Enums_".Length);
 
-                    translationInfo.IsReferenced = file.Content.Contains(translationInfo.Key, StringComparison.InvariantCulture);
+                    translationInfo.IsReferenced = file.Content.Contains(key, StringComparison.InvariantCulture);
                     if (translationInfo.IsReferenced)
                         break;
                 }
