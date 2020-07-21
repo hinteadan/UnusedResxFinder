@@ -35,12 +35,14 @@ namespace ResxTools
             FileAndContent[] filesToCheck
                 = rootFolderToCheck
                 .EnumerateFiles("*.cs", SearchOption.AllDirectories)
-                .Where(x => !x.Name.Contains(resxFileToCheck.Name, StringComparison.InvariantCultureIgnoreCase))
+                .Where(x => !x.Name.Contains(".resx", StringComparison.InvariantCultureIgnoreCase))
+                .Where(x => !x.Name.Contains(".Designer.cs", StringComparison.InvariantCultureIgnoreCase))
                 .Select(x => new FileAndContent(x))
                 .ToArray()
                 ;
 
             Console.WriteLine($"Checking references @ {DateTime.Now} ...");
+            int checkCount = 0;
             foreach (TranslationInfo translationInfo in translations)
             {
                 foreach (FileAndContent file in filesToCheck)
@@ -48,9 +50,9 @@ namespace ResxTools
                     translationInfo.IsReferenced = file.Content.Contains(translationInfo.Key, StringComparison.InvariantCulture);
                     if (translationInfo.IsReferenced)
                         break;
-
-                    Console.Write('.');
                 }
+                checkCount++;
+                Console.WriteLine($"{checkCount} / {translations.Length}");
             }
             Console.WriteLine();
             Console.WriteLine($"DONE Checking references @ {DateTime.Now}");
@@ -71,7 +73,7 @@ namespace ResxTools
                 printer.AppendLine($"{(result.IsReferenced ? "[REFERENCED]" : "[NOT REFERENCED]")}\t{result.Key}");
             }
 
-            FileInfo resultFile = new FileInfo(Path.Combine(outputFolder.FullName, $"resx_refs_{DateTime.Now.ToString("yyyyMMddHHmmss")}"));
+            FileInfo resultFile = new FileInfo(Path.Combine(outputFolder.FullName, $"resx_refs_{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt"));
 
             File.WriteAllText(resultFile.FullName, printer.ToString());
         }
