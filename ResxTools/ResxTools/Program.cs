@@ -35,6 +35,7 @@ namespace ResxTools
             FileAndContent[] filesToCheck
                 = rootFolderToCheck
                 .EnumerateFiles("*.cs", SearchOption.AllDirectories)
+                .Concat(rootFolderToCheck.EnumerateFiles("*.cshtml", SearchOption.AllDirectories))
                 .Where(x => !x.Name.Contains(".resx", StringComparison.InvariantCultureIgnoreCase))
                 .Where(x => !x.Name.Contains(".Designer.cs", StringComparison.InvariantCultureIgnoreCase))
                 .Select(x => new FileAndContent(x))
