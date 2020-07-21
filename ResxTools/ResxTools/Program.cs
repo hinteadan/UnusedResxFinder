@@ -3,18 +3,110 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace ResxTools
 {
     class Program
     {
+        static FileAndContent[] filesToCheck;
+
         static void Main(string[] args)
         {
             DirectoryInfo rootFolderToCheck = new DirectoryInfo(@"C:\H\Ebriza");
-            FileInfo resxFileToCheck = new FileInfo(@"C:\H\Ebriza\Unicolor\UC.ControlCentre.Web.Resources\Translation.resx");
-            DirectoryInfo outputFolder = new DirectoryInfo(@"C:\Users\hinte\Downloads");
 
+            filesToCheck
+                = rootFolderToCheck
+                .EnumerateFiles("*.cs", SearchOption.AllDirectories)
+                .Concat(rootFolderToCheck.EnumerateFiles("*.cshtml", SearchOption.AllDirectories))
+                .Where(x => !x.Name.Contains(".resx", StringComparison.InvariantCultureIgnoreCase))
+                .Where(x => !x.Name.Contains(".Designer.cs", StringComparison.InvariantCultureIgnoreCase))
+                .Select(x => new FileAndContent(x))
+                .ToArray()
+                ;
+
+            Task.WaitAll(
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\UC.ControlCentre.Web.Resources\Translation.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\UC.ControlCentre.Web.Resources.Translation.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\UC.ControlCentre.Web.Resources\Translation.ro.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\UC.ControlCentre.Web.Resources.Translation.ro.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\Ebriza.Client.Api\ErrorCodes.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\Ebriza.Client.Api.ErrorCodes.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\UC.Global\Translation.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\UC.Global.Translation.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\Ebriza.Engine.Report.Resources\Translation.ro.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\Ebriza.Engine.Report.Resources.Translation.ro.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\Ebriza.Engine.Report.Resources\Translation.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\Ebriza.Engine.Report.Resources.Translation.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\RaumFramework\Translations\Translation.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\RaumFramework.Translations.Translation.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\QueueManager\Translation.ro.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\QueueManager.Translation.ro.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\QueueManager\Translation.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\QueueManager.Translation.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\POSPrintInspector\Resources\Translations.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\POSPrintInspector.Resources.Translations.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\Ebriza.Engine.Subscription.Resources\Translation.ro.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\Ebriza.Engine.Subscription.Resources.Translation.ro.resx_refs.txt")
+                    )
+                )
+                ,
+                Task.Run(() => AnalyzeResxFile(
+                    new FileInfo(@"C:\H\Ebriza\Unicolor\Ebriza.Engine.Subscription.Resources\Translation.resx"),
+                    new FileInfo(@"C:\Users\hinte\Downloads\Ebriza.Engine.Subscription.Resources.Translation.resx_refs.txt")
+                    )
+                )
+            )
+            ;
+
+            Console.WriteLine($"Done @ {DateTime.Now}");
+            Console.ReadLine();
+        }
+
+        private static void AnalyzeResxFile(FileInfo resxFileToCheck, FileInfo outputFile)
+        {
             XDocument doc = XDocument.Parse(File.ReadAllText(resxFileToCheck.FullName));
 
             IEnumerable<XElement> dataNodes = doc.Descendants().Where(x => x.Name == "data");
@@ -29,16 +121,6 @@ namespace ResxTools
                         Key = x.Attribute("name").Value,
                     }
                 )
-                .ToArray()
-                ;
-
-            FileAndContent[] filesToCheck
-                = rootFolderToCheck
-                .EnumerateFiles("*.cs", SearchOption.AllDirectories)
-                .Concat(rootFolderToCheck.EnumerateFiles("*.cshtml", SearchOption.AllDirectories))
-                .Where(x => !x.Name.Contains(".resx", StringComparison.InvariantCultureIgnoreCase))
-                .Where(x => !x.Name.Contains(".Designer.cs", StringComparison.InvariantCultureIgnoreCase))
-                .Select(x => new FileAndContent(x))
                 .ToArray()
                 ;
 
@@ -58,13 +140,10 @@ namespace ResxTools
             Console.WriteLine();
             Console.WriteLine($"DONE Checking references @ {DateTime.Now}");
 
-            PrintResults(resxFileToCheck, translations, outputFolder);
-
-            Console.WriteLine($"Done @ {DateTime.Now}");
-            Console.ReadLine();
+            PrintResults(resxFileToCheck, translations, outputFile);
         }
 
-        private static void PrintResults(FileInfo resxFileToCheck, TranslationInfo[] results, DirectoryInfo outputFolder)
+        private static void PrintResults(FileInfo resxFileToCheck, TranslationInfo[] results, FileInfo outputFile)
         {
             StringBuilder printer = new StringBuilder();
             printer.Append(resxFileToCheck.FullName);
@@ -74,9 +153,7 @@ namespace ResxTools
                 printer.AppendLine($"{(result.IsReferenced ? "[REFERENCED]" : "[NOT REFERENCED]")}\t{result.Key}");
             }
 
-            FileInfo resultFile = new FileInfo(Path.Combine(outputFolder.FullName, $"resx_refs_{DateTime.Now.ToString("yyyyMMddHHmmss")}.txt"));
-
-            File.WriteAllText(resultFile.FullName, printer.ToString());
+            File.WriteAllText(outputFile.FullName, printer.ToString());
         }
     }
 
