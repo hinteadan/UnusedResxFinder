@@ -131,7 +131,7 @@ namespace ResxTools
             {
                 foreach (FileAndContent file in filesToCheck)
                 {
-                    if (translationInfo.Key.Contains("_Enums_"))
+                    if (translationInfo.Key.Contains("_Enums_") || translationInfo.Key.Contains("_Enum_"))
                     {
                         translationInfo.IsReferenced = true;
                         break;
