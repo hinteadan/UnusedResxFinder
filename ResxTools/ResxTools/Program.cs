@@ -131,11 +131,13 @@ namespace ResxTools
             {
                 foreach (FileAndContent file in filesToCheck)
                 {
-                    string key = translationInfo.Key;
-                    if (key.Contains("_Enums_"))
-                        key = key.Substring(key.IndexOf("_Enums_") + "_Enums_".Length);
+                    if (translationInfo.Key.Contains("_Enums_"))
+                    {
+                        translationInfo.IsReferenced = true;
+                        break;
+                    }
 
-                    translationInfo.IsReferenced = file.Content.Contains(key, StringComparison.InvariantCulture);
+                    translationInfo.IsReferenced = file.Content.Contains(translationInfo.Key, StringComparison.InvariantCulture);
                     if (translationInfo.IsReferenced)
                         break;
                 }
